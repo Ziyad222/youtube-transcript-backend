@@ -3,7 +3,7 @@ from flask_cors import CORS
 import subprocess, tempfile, os, openai
 
 # Ajoute ffmpeg dans le PATH (utile pour yt-dlp)
-os.environ["PATH"] = os.getcwd() + "/ffmpeg:" + os.environ.get("PATH", "")
+os.environ["PATH"] = "/opt/render/project/src/ffmpeg:" + os.environ["PATH"]
 
 app = Flask(__name__)
 
