@@ -1,7 +1,9 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS  # ← ajoute cette ligne
 import subprocess, tempfile, os, openai
 
 app = Flask(__name__)
+CORS(app) 
 
 @app.route("/transcribe", methods=["POST"])
 def transcribe():
