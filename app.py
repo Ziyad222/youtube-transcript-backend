@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # ← ajoute cette ligne
 import subprocess, tempfile, os, openai
+os.environ["PATH"] = os.getcwd() + "/ffmpeg:" + os.environ["PATH"]
 
 app = Flask(__name__)
 CORS(app) 
