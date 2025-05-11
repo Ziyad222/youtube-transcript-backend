@@ -1,9 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import subprocess, tempfile, os, openai, sys, traceback
+import subprocess, tempfile, os, openai
 
-# Étendre le PATH pour yt-dlp et ffmpeg
-os.environ["PATH"] = os.getcwd() + "/ffmpeg:" + os.environ.get("PATH", "")
+# Ajoute ffmpeg au PATH
+os.environ["PATH"] = os.getcwd() + "/ffmpeg:" + os.environ["PATH"]
 
 app = Flask(__name__)
 CORS(app)
@@ -13,38 +13,28 @@ def transcribe():
     try:
         data = request.get_json()
         youtube_url = data.get("url")
-        print("[INFO] URL reçue :", youtube_url)
-        sys.stdout.flush()
-
         if not youtube_url:
-            print("[ERROR] URL manquante")
-            sys.stdout.flush()
             return jsonify({"error": "Missing YouTube URL"}), 400
 
         with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_audio:
             audio_path = tmp_audio.name
 
+        print("[INFO] URL reçue :", youtube_url)
         print("[DEBUG] Chemin audio temporaire :", audio_path)
-        sys.stdout.flush()
 
-        # Téléchargement avec yt-dlp
+        # Ajout des options pour contourner certaines erreurs réseau
         result = subprocess.run(
-            ["yt-dlp", "-x", "--audio-format", "mp3", "-o", audio_path, youtube_url],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            ["yt-dlp", "-x", "--audio-format", "mp3", "--no-check-certificate", "--force-ipv4", "-o", audio_path, youtube_url],
+            capture_output=True,
             text=True
         )
 
         print("[DEBUG] yt-dlp stdout :", result.stdout)
         print("[DEBUG] yt-dlp stderr :", result.stderr)
-        sys.stdout.flush()
 
         if result.returncode != 0:
-            print("[ERROR] yt-dlp a échoué avec le code", result.returncode)
-            sys.stdout.flush()
-            return jsonify({"error": "Téléchargement audio échoué"}), 500
+            raise Exception(f"yt-dlp a échoué avec le code {result.returncode}")
 
-        # Transcription avec OpenAI Whisper
         with open(audio_path, "rb") as f:
             response = openai.Audio.transcribe("whisper-1", f)
 
@@ -56,9 +46,7 @@ def transcribe():
         })
 
     except Exception as e:
-        print("[ERROR] Exception capturée :", e)
-        traceback.print_exc()
-        sys.stdout.flush()
+        print("[ERROR]", str(e))
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
