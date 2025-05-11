@@ -1,5 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Installer ffmpeg manuellement (nécessite une instance compatible Debian/Ubuntu sur Render)
-apt-get update
-apt-get install -y ffmpeg
+# Télécharger la dernière version statique de ffmpeg (compatible x86_64 Linux)
+curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o ffmpeg.tar.xz
+
+# Extraire l'archive
+mkdir -p ffmpeg
+tar -xJf ffmpeg.tar.xz -C ffmpeg --strip-components=1
+
+# Donner les droits d'exécution à ffmpeg
+chmod +x ffmpeg/ffmpeg
+
+# Installer les dépendances Python
+pip install -r requirements.txt
